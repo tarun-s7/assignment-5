@@ -2,7 +2,7 @@
 
 YEARS=(1 2 3 4 [5]=5)
 
-for ID in {0001..1001}; do
+for ID in {001..101}; do
 
 if [ $ID -lt 100 ]; then
 COURSE="LM0${ID}"
