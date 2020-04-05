@@ -1,4 +1,5 @@
 #!/bin/python
+
 import os
 from bs4 import BeautifulSoup
 import lxml
@@ -6,9 +7,22 @@ import numpy as np
 import pandas as pd
 
 
+def extract_week(input=''):
+    # extract weeks into an array
+    output = []
+    splitted_by_comma = input.split(',')
+    for value in splitted_by_comma:
+        if '-' in value:
+            splitted_by_dash = value.split('-')
+            for val in range(int(splitted_by_dash[0]), int(splitted_by_dash[1])+1):
+                output.append(val)
+        else:
+            output.append(int(value))
+
+    return output
+
 def add_entry(array=[], output={}):
-    # updates the ouput module deatils dict
-    # with new details from array
+    # updates the ouput dict with the array
     module_type = str(array[3]).split(' - ')
     module_time = array[2].split(' - ')
 
@@ -17,18 +31,18 @@ def add_entry(array=[], output={}):
         output['lec_type'].append(module_type[1])
     elif len(module_type) == 3:
         output['module_code'].append(module_type[0])
-        output['lec_type'].append(f'{module_type[0]} - {module_type[1]}')
+        output['lec_type'].append(f'{module_type[1]} - {module_type[2]}')
     else:
         output['module_code'].append(module_type[0])
         output['lec_type'].append('-')
 
     output['year'].append(array[0])
     output['course_title'].append(array[1])
-    output['module_start_time'].append(module_time[0])
-    output['module_end_time'].append(module_time[1])
+    output['module_start_time'].append(f'{module_time[0]}:00')
+    output['module_end_time'].append(f'{module_time[1]}:00')
     output['lecturer'].append(array[4])
     output['lec_room'].append(array[5])
-    output['week'].append(array[6])
+    output['week'].append(extract_week(array[6]))
     output['day_of_the_week'].append(array[7])
 
 def get_module_details(file=''):
@@ -52,6 +66,7 @@ def get_module_details(file=''):
                     day = days_of_the_week[index]
                     contents = td.contents[0].contents
                     contents = list(filter((' ').__ne__, contents))
+                    # convert the br tag object to str then remove it
                     for index, val in enumerate(contents):
                         if type(val) != str:
                             contents[index] = str(val)
@@ -72,21 +87,30 @@ def get_module_details(file=''):
 
 
 if __name__ == '__main__':
+    files =[]
     print('Start cleaning html files!')
-    for course_id in range(1,1001,1):
-        for year in range(1,6):
-            if course_id < 100:
-                filename= f'data/LM0{course_id}{year}.html'
-            else:
-                filename = f'data/LM{course_id}{year}.html'
-            csv = f'output/{filename[5:-5]}.csv'
+    courses = list(pd.read_excel('./course_title.xls')['course_title'])
 
-            omit = ['0281', '0291', '0381', '0391', '0401', '0924']
+    for course in courses:
+        for year in range(1,6):
+            filename = course[-7:]
+            filename = f'data/{filename[1:-1]}{year}.html'
+            omit = ['0281', '0291', '0381', '0391', '0401', '0924',
+                '0444', '0501', '0522', '0532', '0541', '0552', '0561',
+                '0714', '0734', '0774', '0891', '0901', '0923', '0963',
+                '1194', '1502', '1203', '1241', '1251', '1001', '1021',
+                '2681', '2012', '6951', '6051', '6771', '1911']
+
             if filename[7:-5] in omit:
                 break
+
+            csv = f'output/{filename[5:-5]}.csv'
 
             if os.path.isfile(filename) and os.path.isfile(csv) == False:
                 print(filename)
                 df = pd.DataFrame(get_module_details(filename))
                 df.to_csv(csv, index=False)
                 print(csv)
+                files.append(csv)
+
+    print(f'Total csv files created: {len(files)}')
