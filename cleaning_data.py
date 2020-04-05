@@ -17,7 +17,7 @@ def add_entry(array=[], output={}):
         output['lec_type'].append(module_type[1])
     elif len(module_type) == 3:
         output['module_code'].append(module_type[0])
-        output['lec_type'].append(f'{module_type[1]} - {module_type[2]}')
+        output['lec_type'].append(f'{module_type[0]} - {module_type[1]}')
     else:
         output['module_code'].append(module_type[0])
         output['lec_type'].append('-')
