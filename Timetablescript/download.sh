@@ -2,11 +2,13 @@
 
 YEARS=(1 2 3 4 [5]=5)
 
-for ID in {001..101}; do
+for ID in {1..1001}; do
 
-if [ $ID -lt 100 ]; then
+if [ $ID -lt 10 ]; then
+COURSE="LM00${ID}"
+elif [ $ID -lt 100 ]; then
 COURSE="LM0${ID}"
-elif [$ID -ge 100]; then
+else
 COURSE="LM${ID}"
 fi
 
@@ -27,6 +29,7 @@ PARAMS="__EVENTTARGET=ctl00%24HeaderContent%24CourseDropdown&__EVENTARGUMENT=&__
 RESPONSE=$(curl -X POST --data "$PARAMS" https://www.timetable.ul.ie/UA/CourseTimetable.aspx)
 touch "$FILENAME"
 echo "$RESPONSE" >> "$COURSE$YEAR.html"
+echo "Download"
 echo "Completed!"
 
 done; done
